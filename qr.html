@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>QR • Hassas Tarım ve Tarımsal Robotlar Bölümü Sanal Laboratuvarı</title>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+  <style>
+    :root{color-scheme:light}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;margin:14px}
+    .top{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+    .top img{height:44px;width:auto}
+    .btn{margin-left:auto;border:1px solid #d5d5d5;background:#fff;padding:10px 12px;border-radius:12px;cursor:pointer;font-weight:800}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:12px}
+    .card{border:1px solid #e5e5e5;border-radius:16px;padding:12px;background:#fff}
+    .name{font-weight:900;margin-bottom:10px}
+    .row{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start}
+    .col{min-width:170px}
+    .tag{display:inline-block;font-size:12px;padding:4px 10px;border-radius:999px;border:1px solid #ddd;background:#fafafa;margin-bottom:6px;font-weight:800}
+    canvas{background:#fff;padding:8px;border-radius:12px;border:1px solid #eee}
+    .foot{text-align:center;padding:14px 12px 8px;font-size:11px;opacity:.65;letter-spacing:.2px}
+    .hint{font-size:12px;opacity:.7;margin-top:6px}
+    @media print{.btn{display:none}body{margin:0}.card{break-inside:avoid}}
+  </style>
+</head>
+<body>
+  <div class="top">
+    <img src="assets/maku_logo.png" alt="MAKÜ">
+    <div>
+      <div style="font-weight:900">Hassas Tarım ve Tarımsal Robotlar Bölümü Sanal Laboratuvarı — QR</div>
+      <div style="font-size:12px;opacity:.7">Modeller GitHub repo içinden otomatik listelenir • Her model için Android ve iOS QR</div>
+    </div>
+    <img src="assets/hatrob_logo.png" alt="HATROB">
+    <button class="btn" onclick="window.print()">Yazdır</button>
+  </div>
+
+  <div class="grid" id="grid"></div>
+  <div class="foot">Bu uygulama Dr. Tahsin UYGUN tarafından hazırlanmıştır.</div>
+
+  <script src="app.js"></script>
+  <script>
+    const api = window.HATROB;
+    const grid = document.getElementById("grid");
+    const base = location.origin + location.pathname.replace(/\/[^\/]*$/, "/");
+
+    async function makeQR(canvas, url){
+      await QRCode.toCanvas(canvas, url, { width: 170, margin: 1 });
+    }
+
+    (async ()=>{
+      try{
+        const { models } = await api.getRepoFiles();
+        if(!models.length){
+          grid.innerHTML = "<div class='card'><b>Model bulunamadı.</b><div class='hint'>Repo içine .glb/.gltf yükleyin.</div></div>";
+          return;
+        }
+        for(const path of models){
+          const name = api.niceNameFromPath(path);
+          const aUrl = `${base}android.html?f=${encodeURIComponent(path)}`;
+          const iUrl = `${base}ios.html?f=${encodeURIComponent(path)}`;
+
+          const card = document.createElement("div");
+          card.className = "card";
+          card.innerHTML = `
+            <div class="name">${name}</div>
+            <div class="row">
+              <div class="col"><div class="tag">Android</div><br/><canvas></canvas><div class="hint">AR Başlat</div></div>
+              <div class="col"><div class="tag">iOS</div><br/><canvas></canvas><div class="hint">AR Başlat</div></div>
+            </div>
+          `;
+          grid.appendChild(card);
+          const canv = card.querySelectorAll("canvas");
+          await makeQR(canv[0], aUrl);
+          await makeQR(canv[1], iUrl);
+        }
+      } catch(e) {
+        console.error(e);
+        grid.innerHTML = "<div class='card'><b>Liste alınamadı.</b><div class='hint'>GitHub API sınırı/ağ sorunu olabilir. Yeniden deneyin.</div></div>";
+      }
+    })();
+  </script>
+</body>
+</html>
