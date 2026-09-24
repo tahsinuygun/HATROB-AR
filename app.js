@@ -1,126 +1,75 @@
-// app.js — GitHub repo içindeki .glb/.gltf dosyalarını otomatik listeler (GitHub API Trees)
-// Repo’ya yeni model ekleyince sayfayı yenileyince otomatik görünür. "Yenile" butonu cache'i temizler.
-
 window.HATROB = (() => {
-  // ====== DOLDUR (repo değişirse) ======
-  const REPO_OWNER = "tahsinuygun";
-  const REPO_NAME  = "HATROB-AR";
-  const BRANCH     = "main";
+  const REPO_OWNER="tahsinuygun", REPO_NAME="HATROB-AR", BRANCH="main";
+  const MODELS_PREFIX="models/", USDZ_PREFIX="usdz/";
+  const CACHE_KEY="hatrob_models_v2", CACHE_TTL_MS=2*60*1000;
 
-  // ====== AYAR ======
-  const MODEL_EXTS = [".glb", ".gltf"];
-  const EXCLUDE_PREFIXES = ["assets/", "usdz/", ".git", ".github/"];
-  const EXCLUDE_EXTS = [".html", ".css", ".js", ".png", ".jpg", ".jpeg", ".webp", ".svg", ".md", ".txt", ".pdf", ".zip", ".rar"];
-
-  const CACHE_KEY = "hatrob_github_models_cache_v1";
-  const CACHE_TTL_MS = 2 * 60 * 1000; // 2 dk
-
-  function niceNameFromPath(path){
-    const file = path.split("/").pop();
-    const base = file.replace(/\.[^.]+$/, "");
-    return base.replace(/[_\-]+/g, " ").replace(/\s+/g, " ").trim();
-  }
-
-  function encodePath(path){
-    // boşluk/Türkçe karakter güvenli
-    return path.split("/").map(encodeURIComponent).join("/");
-  }
-
-  async function fetchBranchTreeSha(){
-    const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/branches/${BRANCH}`;
-    const res = await fetch(url, { headers: { "Accept": "application/vnd.github+json" }});
-    if(!res.ok) throw new Error(`Branch fetch failed: ${res.status}`);
-    const data = await res.json();
-    return data?.commit?.commit?.tree?.sha;
-  }
-
-  async function fetchTreeRecursive(treeSha){
-    const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/git/trees/${treeSha}?recursive=1`;
-    const res = await fetch(url, { headers: { "Accept": "application/vnd.github+json" }});
-    if(!res.ok) throw new Error(`Tree fetch failed: ${res.status}`);
-    return await res.json();
-  }
-
-  function isExcluded(path){
-    const lower = path.toLowerCase();
-    if (EXCLUDE_PREFIXES.some(p => lower.startsWith(p))) return true;
-    if (EXCLUDE_EXTS.some(ext => lower.endsWith(ext))) return true;
-    if (path.split("/").some(seg => seg.startsWith("."))) return true;
-    return false;
-  }
-
-  function isModelFile(path){
-    const lower = path.toLowerCase();
-    return MODEL_EXTS.some(ext => lower.endsWith(ext));
-  }
-
-  function isUSDZ(path){
-    return path.toLowerCase().endsWith(".usdz");
-  }
+  const niceNameFromPath=(path)=>{
+    const file=(path||"").split("/").pop()||"";
+    return file.replace(/\.[^.]+$/,"").replace(/[_-]+/g," ").replace(/\s+/g," ").trim();
+  };
+  const encodePath=(path)=>(path||"").split("/").map(encodeURIComponent).join("/");
+  const formatBytes=(n)=>{
+    if(!Number.isFinite(n)) return "";
+    if(n<1024*1024) return (n/1024).toFixed(0)+" KB";
+    return (n/1024/1024).toFixed(1)+" MB";
+  };
+  const isIOS=()=>/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform==="MacIntel" && navigator.maxTouchPoints>1);
 
   function loadCache(){
     try{
-      const raw = localStorage.getItem(CACHE_KEY);
-      if(!raw) return null;
-      const obj = JSON.parse(raw);
-      if(!obj.ts || !obj.models) return null;
-      if(Date.now() - obj.ts > CACHE_TTL_MS) return null;
-      return obj;
-    }catch{ return null; }
+      const x=JSON.parse(localStorage.getItem(CACHE_KEY)||"null");
+      if(!x?.ts || !Array.isArray(x.models) || Date.now()-x.ts>CACHE_TTL_MS) return null;
+      return x;
+    }catch{return null;}
   }
+  function saveCache(models,usdz){try{localStorage.setItem(CACHE_KEY,JSON.stringify({ts:Date.now(),models,usdz}))}catch{}}
+  function clearCache(){try{localStorage.removeItem(CACHE_KEY)}catch{}}
 
-  function saveCache(models, usdz){
-    try{
-      localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), models, usdz }));
-    }catch{}
-  }
-
-  function clearCache(){
-    try{ localStorage.removeItem(CACHE_KEY); }catch{}
+  async function getTree(){
+    const b=await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/branches/${BRANCH}`,{headers:{Accept:"application/vnd.github+json"}});
+    if(!b.ok) throw new Error("GitHub branch bilgisi alınamadı");
+    const bd=await b.json();
+    const sha=bd?.commit?.commit?.tree?.sha;
+    const t=await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/git/trees/${sha}?recursive=1`,{headers:{Accept:"application/vnd.github+json"}});
+    if(!t.ok) throw new Error("GitHub model listesi alınamadı");
+    return t.json();
   }
 
   async function getRepoFiles({forceRefresh=false}={}){
     if(!forceRefresh){
-      const cached = loadCache();
-      if(cached) return cached;
+      const c=loadCache();
+      if(c) return c;
     }
-
-    const treeSha = await fetchBranchTreeSha();
-    if(!treeSha) throw new Error("Tree SHA not found");
-
-    const tree = await fetchTreeRecursive(treeSha);
-    const blobs = (tree.tree || []).filter(x => x.type === "blob" && x.path);
-
-    const models = [];
-    const usdz = [];
-
-    for(const b of blobs){
-      if(isExcluded(b.path)) continue;
-      if(isModelFile(b.path)) models.push(b.path);
-      else if(isUSDZ(b.path)) usdz.push(b.path);
+    const tree=await getTree();
+    const blobs=(tree.tree||[]).filter(x=>x.type==="blob"&&x.path);
+    let models=blobs
+      .filter(x=>x.path.toLowerCase().startsWith(MODELS_PREFIX) && /\.(glb|gltf)$/i.test(x.path))
+      .map(x=>({path:x.path,size:x.size||0,sha:x.sha}));
+    if(!models.length){
+      models=blobs
+        .filter(x=>/\.(glb|gltf)$/i.test(x.path) && !x.path.toLowerCase().startsWith("assets/"))
+        .map(x=>({path:x.path,size:x.size||0,sha:x.sha}));
     }
-
-    models.sort((a,b)=> niceNameFromPath(a).localeCompare(niceNameFromPath(b), "tr"));
+    const usdz=blobs.filter(x=>x.path.toLowerCase().startsWith(USDZ_PREFIX)&&/\.usdz$/i.test(x.path)).map(x=>x.path);
+    models.sort((a,b)=>niceNameFromPath(a.path).localeCompare(niceNameFromPath(b.path),"tr"));
     usdz.sort();
-
-    saveCache(models, usdz);
-    return { models, usdz };
+    saveCache(models,usdz);
+    return {models,usdz};
   }
 
-  function findMatchingUSDZ(modelPath, usdzList){
-    const file = modelPath.split("/").pop();
-    const base = file.replace(/\.[^.]+$/, "");
-    const preferred = `usdz/${base}.usdz`;
-
-    const lower = new Set((usdzList||[]).map(x => x.toLowerCase()));
-    if(lower.has(preferred.toLowerCase())) return preferred;
-
-    const dir = modelPath.includes("/") ? modelPath.slice(0, modelPath.lastIndexOf("/")+1) : "";
-    const alt = `${dir}${base}.usdz`;
-    if(lower.has(alt.toLowerCase())) return alt;
-
-    return (usdzList||[]).find(x => x.split("/").pop().toLowerCase() === `${base}.usdz`.toLowerCase()) || null;
+  function resolveRequestedModel(raw,models){
+    if(!raw) return null;
+    const exact=models.find(m=>m.path===raw);
+    if(exact) return exact;
+    const base=raw.split("/").pop().toLowerCase();
+    return models.find(m=>m.path.split("/").pop().toLowerCase()===base)||null;
   }
 
-  return { getRepoFiles, clearCache, niceNameFromPath, encodePath, findMatchingUSDZ };
+  function findMatchingUSDZ(modelPath,usdzList){
+    const file=modelPath.split("/").pop();
+    const base=file.replace(/\.[^.]+$/,"").toLowerCase();
+    return (usdzList||[]).find(x=>x.split("/").pop().replace(/\.usdz$/i,"").toLowerCase()===base)||null;
+  }
+
+  return {getRepoFiles,clearCache,niceNameFromPath,encodePath,formatBytes,isIOS,resolveRequestedModel,findMatchingUSDZ};
 })();
