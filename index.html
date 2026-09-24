@@ -1,81 +1,143 @@
 <!doctype html>
 <html lang="tr">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Hassas Tarım ve Tarımsal Robotlar Bölümü Sanal Laboratuvarı</title>
-  <style>
-    
-:root{
-  --bg0:#0B1B4D; --bg1:#152A66;
-  --t:#F2F6FF; --m:rgba(242,246,255,.78);
-  --p1:#7C6CFF; --p2:#FF5470; --g:#F7C55B; --ok:#2EE59D;
-  --sh:0 18px 44px rgba(0,0,0,.35);
-  color-scheme: dark;
-}
-*{box-sizing:border-box}
-body{
-  margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial; color:var(--t);
-  background:
-    radial-gradient(900px 520px at 12% -10%, rgba(124,108,255,.58), transparent 55%),
-    radial-gradient(900px 520px at 100% 0%, rgba(255,84,112,.38), transparent 60%),
-    radial-gradient(900px 520px at 55% 110%, rgba(247,197,91,.22), transparent 60%),
-    linear-gradient(180deg, var(--bg0), var(--bg1));
-}
-
-    body{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px}
-    .card{
-      width:min(1020px,100%);border-radius:22px;border:1px solid rgba(255,255,255,.16);
-      background:rgba(255,255,255,.08);box-shadow:var(--sh);overflow:hidden;backdrop-filter: blur(10px);
-    }
-    header{
-      padding:14px 16px;display:flex;gap:14px;align-items:center;flex-wrap:wrap;
-      border-bottom:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);
-    }
-    header img.maku{height:38px;width:auto;filter:drop-shadow(0 6px 18px rgba(0,0,0,.25))}
-    header img.hatrob{height:54px;width:auto;filter:drop-shadow(0 8px 22px rgba(0,0,0,.25))}
-    .t{display:flex;flex-direction:column;line-height:1.15;flex:1 1 520px}
-    .t b{font-size:15px;letter-spacing:.2px}
-    .t span{font-size:12px;color:var(--m)}
-    .grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));padding:16px}
-    a.btn{
-      text-decoration:none;display:flex;align-items:center;justify-content:center;padding:14px;border-radius:16px;
-      border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.10);color:var(--t);font-weight:900;
-      transition:transform .12s ease,border-color .12s ease;
-    }
-    a.btn:hover{transform:translateY(-1px);border-color:rgba(255,255,255,.28)}
-    a.primary{
-      border:0;background:linear-gradient(135deg, rgba(124,108,255,.95), rgba(255,84,112,.86));color:#0B1020;
-      box-shadow:0 14px 30px rgba(124,108,255,.18),0 10px 24px rgba(255,84,112,.12)
-    }
-    .note{padding:0 16px 8px;font-size:12px;color:rgba(242,246,255,.75)}
-    .foot{text-align:center;padding:10px 12px 16px;font-size:11px;opacity:.75;letter-spacing:.2px}
-    .kbd{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;padding:1px 6px;border-radius:8px;border:1px solid rgba(255,255,255,.20);
-      background:rgba(255,255,255,.10);color:rgba(242,246,255,.85)}
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b1b4d">
+<title>HATROB AR • Sanal Laboratuvar</title>
+<script type="module" src="https://unpkg.com/@google/model-viewer@3.5.0/dist/model-viewer.min.js"></script>
+<style>
+:root{--bg0:#081638;--bg1:#102759;--t:#f6f9ff;--m:#b9c7df;--a:#66d48f;--b:#2d6fc4;--warn:#ffd166;--line:rgba(255,255,255,.12)}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;color:var(--t);background:radial-gradient(900px 520px at 12% -10%,rgba(45,111,196,.45),transparent 55%),radial-gradient(900px 520px at 100% 0%,rgba(102,212,143,.22),transparent 60%),linear-gradient(180deg,var(--bg0),var(--bg1))}
+.top{position:sticky;top:0;z-index:20;background:rgba(6,18,42,.82);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:10px 12px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;max-width:1180px;margin:auto}
+.brand{display:flex;align-items:center;gap:10px;min-width:250px;flex:1 1 430px}.brand img.maku{height:34px}.brand img.hatrob{height:50px;margin-left:auto}.tt{line-height:1.05}.tt b{display:block;font-size:14px}.tt span{font-size:11px;color:var(--m)}
+.controls{display:grid;grid-template-columns:minmax(150px,1fr) minmax(190px,1.4fr) auto auto;gap:8px;max-width:1180px;margin:10px auto 0}
+input,select,button{border-radius:12px;padding:11px 12px;font-size:13px}input,select{background:rgba(255,255,255,.10);border:1px solid var(--line);color:var(--t);outline:none}select option{color:#111}
+button{border:1px solid var(--line);background:rgba(255,255,255,.11);color:var(--t);font-weight:800;cursor:pointer}.primary{border:0;background:linear-gradient(135deg,#66d48f,#72c9ff);color:#082033}.primary[disabled],button[disabled]{opacity:.45;cursor:not-allowed}
+.wrap{max-width:1180px;margin:auto;padding:12px}.panel{overflow:hidden;border:1px solid var(--line);border-radius:20px;background:rgba(255,255,255,.07);box-shadow:0 18px 50px rgba(0,0,0,.28)}
+.viewerWrap{position:relative;background:#eef3f7;min-height:58vh}model-viewer{display:block;width:100%;height:68vh;max-height:760px;background:linear-gradient(180deg,#f7fafc,#e5edf3)}
+.empty{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:24px;color:#526474;pointer-events:none}.empty b{display:block;font-size:19px;color:#253849;margin-bottom:7px}
+.meta{display:flex;gap:8px;flex-wrap:wrap;padding:10px 12px;border-top:1px solid var(--line);background:rgba(4,14,30,.65)}.chip{padding:6px 9px;border-radius:999px;border:1px solid var(--line);font-size:11px;color:#d8e4f6}.chip.warn{color:#ffe39a;border-color:rgba(255,209,102,.35);background:rgba(255,209,102,.08)}
+.actions{display:flex;gap:8px;flex-wrap:wrap;padding:10px 12px 13px;background:rgba(4,14,30,.65)}.actions button{flex:0 0 auto}.actions a{text-decoration:none}
+.progress{position:absolute;left:14px;right:14px;bottom:14px;height:9px;border-radius:999px;background:rgba(30,45,58,.20);overflow:hidden}.bar{height:100%;width:0;background:linear-gradient(90deg,#2d6fc4,#66d48f);transition:width .12s linear}
+.toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:999;background:rgba(4,12,26,.93);border:1px solid var(--line);padding:10px 13px;border-radius:13px;font-size:12px;display:none;max-width:min(92vw,520px);text-align:center}
+.foot{text-align:center;color:#aebed4;font-size:11px;padding:8px 12px 18px}
+@media(max-width:760px){.controls{grid-template-columns:1fr 1fr}.controls input{grid-column:1/-1}.viewerWrap{min-height:52vh}model-viewer{height:58vh}.brand img.hatrob{height:42px}}
+</style>
 </head>
 <body>
-  <div class="card">
-    <header>
+<div class="top">
+  <div class="row">
+    <div class="brand">
       <img class="maku" src="assets/maku_logo.png" alt="MAKÜ">
-      <div class="t">
-        <b>Hassas Tarım ve Tarımsal Robotlar Bölümü Sanal Laboratuvarı</b>
-        <span>Modeller GitHub repo içinden otomatik listelenir • Android/iOS ayrı AR</span>
-      </div>
+      <div class="tt"><b>Hassas Tarım ve Tarımsal Robotlar Bölümü Sanal Laboratuvarı</b><span>Tek arayüz • 3B görüntüleme ve artırılmış gerçeklik</span></div>
       <img class="hatrob" src="assets/hatrob_logo.png" alt="HATROB">
-    </header>
-
-    <div class="grid">
-      <a class="btn primary" href="android.html">Android</a>
-      <a class="btn primary" href="ios.html">iOS</a>
-      <a class="btn" href="qr.html">QR Üret (Android + iOS)</a>
     </div>
-
-    <div class="note">
-      İpucu: Tek bir modeli direkt açmak için <span class="kbd">?f=models/parcaniz.glb</span> parametresi kullanılır (QR sayfası otomatik üretir).
-    </div>
-
-    <div class="foot">Bu uygulama Dr. Tahsin UYGUN tarafından hazırlanmıştır.</div>
   </div>
+  <div class="controls">
+    <input id="q" placeholder="Model ara…">
+    <select id="sel"><option>Modeller yükleniyor…</option></select>
+    <button id="load" class="primary" disabled>Modeli Yükle</button>
+    <button id="refresh">Yenile</button>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="panel">
+    <div class="viewerWrap">
+      <model-viewer id="mv" camera-controls ar ar-modes="webxr scene-viewer quick-look" ar-scale="auto" ar-placement="floor" environment-image="neutral" exposure="1.15" shadow-intensity=".65" interaction-prompt="none" touch-action="pan-y">
+        <div class="progress" slot="progress-bar"><div class="bar" id="bar"></div></div>
+      </model-viewer>
+      <div class="empty" id="empty"><div><b>Bir model seçin</b>Model yalnızca “Modeli Yükle” dediğinizde açılır. Bu yaklaşım mobil cihazlarda bellek kullanımını azaltır.</div></div>
+    </div>
+    <div class="meta">
+      <span class="chip" id="status">Model listesi hazırlanıyor…</span>
+      <span class="chip" id="size"></span>
+      <span class="chip" id="platform"></span>
+      <span class="chip warn" id="warning" style="display:none"></span>
+    </div>
+    <div class="actions">
+      <button id="ar" class="primary" disabled>AR Başlat</button>
+      <button id="share" disabled>Linki Kopyala</button>
+      <button id="clear" disabled>Modeli Kapat</button>
+      <a href="qr.html"><button type="button">QR Sayfası</button></a>
+    </div>
+  </div>
+</div>
+<div class="foot">Bu uygulama Dr. Tahsin UYGUN tarafından hazırlanmıştır.</div>
+<div class="toast" id="toast"></div>
+
+<script src="app.js"></script>
+<script>
+const api=window.HATROB, sel=document.getElementById("sel"), q=document.getElementById("q"), mv=document.getElementById("mv");
+const loadBtn=document.getElementById("load"), arBtn=document.getElementById("ar"), shareBtn=document.getElementById("share"), clearBtn=document.getElementById("clear");
+const statusEl=document.getElementById("status"), sizeEl=document.getElementById("size"), platformEl=document.getElementById("platform"), warningEl=document.getElementById("warning");
+const empty=document.getElementById("empty"), bar=document.getElementById("bar"), toast=document.getElementById("toast");
+let models=[],filtered=[],usdz=[],current=null,loaded=false,loadTimer=null;
+
+function show(m){toast.textContent=m;toast.style.display="block";clearTimeout(show.t);show.t=setTimeout(()=>toast.style.display="none",2200)}
+function renderOptions(list){
+  sel.innerHTML="";
+  if(!list.length){const o=document.createElement("option");o.textContent="Model bulunamadı";o.value="";sel.appendChild(o);return}
+  for(const m of list){const o=document.createElement("option");o.value=m.path;o.textContent=api.niceNameFromPath(m.path);sel.appendChild(o)}
+}
+function selectedModel(){return models.find(m=>m.path===sel.value)||null}
+function updateMeta(){
+  const m=selectedModel();current=m;loadBtn.disabled=!m;shareBtn.disabled=!m;
+  sizeEl.textContent=m?api.formatBytes(m.size):"";
+  warningEl.style.display="none";
+  if(m&&m.size>18*1024*1024){warningEl.textContent="Ağır model • bazı telefonlarda yavaş veya kararsız olabilir";warningEl.style.display="inline-flex"}
+  const match=m?api.findMatchingUSDZ(m.path,usdz):null;
+  platformEl.textContent=api.isIOS()?(match?"iPhone AR hazır":"iPhone: 3B önizleme • AR için USDZ gerekir"):"Android / Web AR";
+  if(m){const u=new URL(location.href);u.searchParams.set("f",m.path);history.replaceState({},"",u)}
+}
+function filter(){
+  const t=(q.value||"").trim().toLowerCase();
+  filtered=!t?models:models.filter(m=>api.niceNameFromPath(m.path).toLowerCase().includes(t));
+  const keep=sel.value;renderOptions(filtered);
+  if(keep&&filtered.some(m=>m.path===keep))sel.value=keep;
+  updateMeta();
+}
+function resetViewer(){
+  clearTimeout(loadTimer);loaded=false;arBtn.disabled=true;clearBtn.disabled=true;bar.style.width="0%";
+  try{mv.pause?.()}catch{}
+  mv.removeAttribute("src");mv.removeAttribute("ios-src");
+  empty.style.display="grid";statusEl.textContent="Model seçildi • yüklemeye hazır";
+}
+function loadModel(){
+  const m=selectedModel();if(!m)return;
+  resetViewer();current=m;loadBtn.disabled=true;statusEl.textContent="Model yükleniyor…";
+  const match=api.findMatchingUSDZ(m.path,usdz);
+  if(match)mv.setAttribute("ios-src",api.encodePath(match));
+  requestAnimationFrame(()=>setTimeout(()=>mv.setAttribute("src",api.encodePath(m.path)),80));
+  loadTimer=setTimeout(()=>{if(!loaded){statusEl.textContent="Yükleme uzun sürüyor";show("Model büyük olabilir. Gerekirse modeli kapatıp daha hafif bir model deneyin.")}},30000);
+}
+mv.addEventListener("progress",e=>{const p=Math.max(0,Math.min(1,e.detail.totalProgress||0));bar.style.width=Math.round(p*100)+"%"});
+mv.addEventListener("load",()=>{clearTimeout(loadTimer);loaded=true;empty.style.display="none";statusEl.textContent="Model hazır";loadBtn.disabled=false;arBtn.disabled=false;clearBtn.disabled=false;bar.style.width="100%"});
+mv.addEventListener("error",()=>{clearTimeout(loadTimer);loaded=false;statusEl.textContent="Model yüklenemedi";loadBtn.disabled=false;arBtn.disabled=true;clearBtn.disabled=false;show("Bu model cihazda açılamadı. Büyük model veya mobil GPU/bellek sınırı olabilir.")});
+loadBtn.addEventListener("click",loadModel);
+clearBtn.addEventListener("click",()=>{resetViewer();loadBtn.disabled=!selectedModel()});
+arBtn.addEventListener("click",async()=>{
+  if(api.isIOS()&&!api.findMatchingUSDZ(current?.path||"",usdz)){show("Bu model için iPhone AR dosyası (USDZ) yok. 3B görüntülemeyi kullanabilirsiniz.");return}
+  try{await mv.activateAR()}catch{show("AR bu cihazda başlatılamadı.")}
+});
+shareBtn.addEventListener("click",async()=>{try{await navigator.clipboard.writeText(location.href);show("Model bağlantısı kopyalandı ✓")}catch{show("Kopyalama desteklenmiyor")}});
+q.addEventListener("input",filter);sel.addEventListener("change",()=>{resetViewer();updateMeta()});
+document.getElementById("refresh").addEventListener("click",()=>{api.clearCache();init(true)});
+
+async function init(force=false){
+  statusEl.textContent=force?"Liste yenileniyor…":"Model listesi hazırlanıyor…";
+  try{
+    const data=await api.getRepoFiles({forceRefresh:force});models=data.models||[];usdz=data.usdz||[];
+    renderOptions(models);filtered=models;
+    const requested=api.resolveRequestedModel(new URL(location.href).searchParams.get("f"),models);
+    if(requested)sel.value=requested.path;
+    statusEl.textContent=models.length?models.length+" model bulundu":"Model bulunamadı";
+    updateMeta();
+  }catch(e){console.error(e);statusEl.textContent="Liste alınamadı";show("GitHub API veya ağ bağlantısı sorunu.")}
+}
+resetViewer();init();
+</script>
 </body>
 </html>
