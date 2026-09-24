@@ -42,13 +42,21 @@ window.HATROB = (() => {
     }
     const tree=await getTree();
     const blobs=(tree.tree||[]).filter(x=>x.type==="blob"&&x.path);
-    let models=blobs
-      .filter(x=>x.path.toLowerCase().startsWith(MODELS_PREFIX) && /\.(glb|gltf)$/i.test(x.path))
-      .map(x=>({path:x.path,size:x.size||0,sha:x.sha}));
-    if(!models.length){
-      models=blobs
-        .filter(x=>/\.(glb|gltf)$/i.test(x.path) && !x.path.toLowerCase().startsWith("assets/"))
-        .map(x=>({path:x.path,size:x.size||0,sha:x.sha}));
+    const candidates=blobs
+      .filter(x=>/\.(glb|gltf)$/i.test(x.path) && !x.path.toLowerCase().startsWith("assets/") && !x.path.toLowerCase().startsWith(USDZ_PREFIX))
+      .map(x=>({path:x.path,size:x.size||0,sha:x.sha}))
+      .sort((a,b)=>{
+        const am=a.path.toLowerCase().startsWith(MODELS_PREFIX)?0:1;
+        const bm=b.path.toLowerCase().startsWith(MODELS_PREFIX)?0:1;
+        return am-bm || niceNameFromPath(a.path).localeCompare(niceNameFromPath(b.path),"tr");
+      });
+    const seen=new Set();
+    const models=[];
+    for(const m of candidates){
+      const key=m.path.split("/").pop().toLowerCase();
+      if(seen.has(key)) continue;
+      seen.add(key);
+      models.push(m);
     }
     const usdz=blobs.filter(x=>x.path.toLowerCase().startsWith(USDZ_PREFIX)&&/\.usdz$/i.test(x.path)).map(x=>x.path);
     models.sort((a,b)=>niceNameFromPath(a.path).localeCompare(niceNameFromPath(b.path),"tr"));
