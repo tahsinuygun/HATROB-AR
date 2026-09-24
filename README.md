@@ -1,21 +1,30 @@
-# Hassas Tarım ve Tarımsal Robotlar Bölümü Sanal Laboratuvarı (GitHub Pages)
+# HATROB AR — Hassas Tarım ve Tarımsal Robotlar Bölümü Sanal Laboratuvarı
 
-Bu paket, GitHub repo içindeki **.glb/.gltf** modelleri otomatik listeler.
+Tek web arayüzü üzerinden 3B model görüntüleme ve artırılmış gerçeklik demosu.
 
-## Kurulum
-1) Zip içeriğini repo köküne yükle.
-2) Modelleri repo içinde istediğin klasöre koy (örn. `models/`).
-3) GitHub Pages aç:
-   - Settings → Pages → Deploy from branch → main / root
+## Yapı
 
-## Kullanım
-- Android: `android.html`
-- iOS: `ios.html`
-- QR: `qr.html`
-- Tek model direkt açma:
-  - `android.html?f=models/ornek.glb`
-  - `ios.html?f=models/ornek.glb`
+- `index.html` — tek ana arayüz; Android/iOS ayrımı kullanıcıya gösterilmez.
+- `models/` — GLB/GLTF modelleri.
+- `usdz/` — iPhone/iPad AR için aynı temel ada sahip USDZ dosyaları.
+- `assets/` — logolar ve arayüz görselleri.
+- `qr.html` — her model için tek QR üretir.
+- `ios.html` ve `android.html` — eski bağlantıların bozulmaması için ana sayfaya yönlendirir.
 
-## Not
-- GitHub API rate limitine takılırsan sayfayı biraz sonra tekrar yenile.
-- iOS için en stabil AR: aynı isimli `.usdz` dosyalarını `usdz/` klasörüne koy.
+## Mobil kararlılık
+
+Modeller otomatik yüklenmez. Kullanıcı **Modeli Yükle** düğmesine bastığında açılır. Bu yöntem özellikle büyük GLB dosyalarında mobil bellek kullanımını azaltır.
+
+18 MB üzerindeki dosyalar arayüzde ağır model olarak işaretlenir. Mobil kullanım için mümkünse:
+- modeli 15–20 MB altında tutun,
+- texture çözünürlüklerini gereksiz büyütmeyin,
+- gereksiz mesh ve materyalleri temizleyin,
+- animasyonları yalnızca gerektiğinde kullanın.
+
+## Tek modele bağlantı
+
+`https://tahsinuygun.github.io/HATROB-AR/?f=models/PI5.glb`
+
+## iPhone/iPad AR
+
+Gerçek AR için modelle aynı temel ada sahip bir USDZ dosyasını `usdz/` klasörüne ekleyin. USDZ yoksa aynı ana sayfada 3B önizleme kullanılabilir.
