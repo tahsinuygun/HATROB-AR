@@ -1,0 +1,1 @@
+# Modeller\n\nGLB ve GLTF dosyalarını bu klasöre ekleyin. Mobil cihazlarda kararlılık için mümkünse modelleri 15–20 MB altında tutun.\n
